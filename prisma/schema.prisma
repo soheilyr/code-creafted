@@ -13,25 +13,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String?
+  password     String
+  isAdmin      Boolean  @default(false)
+  isBlocked    Boolean  @default(false)
+  avatar       String?
   savedBlogs   Blog[]   @relation("SavedBlogs")
   writtenBlogs Blog[]   @relation("Author")
+
+  // Follow System (self-relation)
+  following    Follow[] @relation("FollowingUser")
+  followers    Follow[] @relation("FollowerUser")
+}
+
+model Follow {
+  id           String   @id @default(cuid())
+  followerId   String
+  followingId  String
+
+  follower     User     @relation("FollowerUser", fields: [followerId], references: [id])
+  following    User     @relation("FollowingUser", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId]) // prevent duplicate follows
 }
 
 model Blog {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   content     String
   imageUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  published   Boolean  @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  published   Boolean   @default(false)
 
   authorId    String
-  author      User     @relation("Author", fields: [authorId], references: [id])
+  author      User      @relation("Author", fields: [authorId], references: [id])
 
-  savedBy     User[]   @relation("SavedBlogs")
+  savedBy     User[]    @relation("SavedBlogs")
+
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+}
+
+model Category {
+  id      String @id @default(cuid())
+  name    String @unique
+  blogs   Blog[]
 }
