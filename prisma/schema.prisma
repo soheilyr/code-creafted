@@ -44,12 +44,12 @@ model Follow {
 model Blog {
   id          String    @id @default(cuid())
   title       String
-  content     String
+  description String 
+  content     String?
   imageUrl    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   published   Boolean   @default(false)
-
   authorId    String
   author      User      @relation("Author", fields: [authorId], references: [id])
 

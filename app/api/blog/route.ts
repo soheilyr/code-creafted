@@ -16,16 +16,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, imageUrl, content, category } = await req.json();
+    const {
+      title,
+      description,
+      category,
+      imageUrl = null,
+      content = null,
+    } = await req.json();
 
     await prisma.blog.create({
       data: {
         title,
-        content,
+        description,
         author: {
           connect: { id: user.id },
         },
         imageUrl,
+        content,
         category: {
           connectOrCreate: {
             where: { name: category },

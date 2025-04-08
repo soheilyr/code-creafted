@@ -8,15 +8,15 @@ export default function BlogCard({
   showEdit = false,
 }: {
   blog: Partial<BlogType>;
-  showEdit: boolean;
+  showEdit?: boolean;
 }) {
   return (
-    <Card className="bg-[#fff] max-w-[400px] text-[#212a3e] hover:shadow-lg transition-shadow duration-300 rounded-2xl overflow-hidden">
+    <Card className="bg-[#fff] max-w-[400px] min-h-[422px] text-[#212a3e] hover:shadow-lg transition-shadow duration-300 rounded-2xl overflow-hidden">
       <Link href={`/blog/${blog.id}`}>
         <div className="relative w-full h-48 rounded-2xl">
           <Image
-            src={blog.imageUrl || "/placeholder.jpg"}
-            alt={blog.title}
+            src={`${blog?.imageUrl ?? "/uploads/avatar.jpg"}`}
+            alt={blog.title ?? ""}
             fill
             className="object-cover"
           />
@@ -24,7 +24,7 @@ export default function BlogCard({
       </Link>
       <CardContent className="pb-4 space-y-3">
         <Link href={`/blog/${blog.id}`}>
-          <h2 className="text-xl font-bold  transition-colors duration-200">
+          <h2 className="!text-xl font-bold line-clamp-2  transition-colors duration-200">
             {blog.title}
           </h2>
         </Link>
@@ -35,7 +35,7 @@ export default function BlogCard({
           href={`/blog/${blog.id}`}
           className="flex items-center justify-between text-xs text-[#94a3b8] pt-2"
         >
-          <span>{new Date(blog.createdAt).toLocaleDateString()}</span>
+          <span>{new Date(blog.createdAt ?? "").toLocaleDateString()}</span>
           <span className="text-[#ff7e29] font-medium">Read more →</span>
         </Link>
         {showEdit && (
