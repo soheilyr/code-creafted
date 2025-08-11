@@ -12,7 +12,7 @@ export default function BlogCard({
 }) {
   return (
     <Card className="bg-[#fff] max-w-[400px] min-h-[422px] text-[#212a3e] hover:shadow-lg transition-shadow duration-300 rounded-2xl overflow-hidden">
-      <Link href={`/blog/${blog.id}`}>
+      <Link href={`/blogs/${blog.id}`}>
         <div className="relative w-full h-48 rounded-2xl">
           <Image
             src={`${blog?.imageUrl ?? "/uploads/avatar.jpg"}`}
@@ -23,7 +23,7 @@ export default function BlogCard({
         </div>
       </Link>
       <CardContent className="pb-4 space-y-3">
-        <Link href={`/blog/${blog.id}`}>
+        <Link href={`/blogs/${blog.id}`}>
           <h2 className="!text-xl font-bold line-clamp-2  transition-colors duration-200">
             {blog.title}
           </h2>
@@ -32,7 +32,7 @@ export default function BlogCard({
           {blog.content?.replace(/[#_*`>]/g, "").slice(0, 160)}...
         </p>
         <Link
-          href={`/blog/${blog.id}`}
+          href={`/blogs/${blog.id}`}
           className="flex items-center justify-between text-xs text-[#94a3b8] pt-2"
         >
           <span>{new Date(blog.createdAt ?? "").toLocaleDateString()}</span>

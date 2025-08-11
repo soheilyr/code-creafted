@@ -1,37 +1,39 @@
-// import { NextApiRequest } from "next";
-// import { prisma } from "@/lib/prisma"; // Update if your prisma import path is different
-// import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma"; // Update if your prisma import path is different
+import { responseGenerator } from "@/server/helper/responseGenerator";
+import { NextResponse } from "next/server";
 
-// export async function GET(req: NextApiRequest) {
-//   const r = req;
-//   console.log(r);
-//   const { id } = req.query;
-//   console.log("queryyyyy", req.query);
-//   if (!id || typeof id !== "string") {
-//     return NextResponse.status(400).json({ error: "Invalid or missing ID" });
-//   }
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  if (!params.id || typeof params.id !== "string") {
+    return NextResponse.json(
+      responseGenerator({}, "Invalid or missing ID", 400, true)
+    );
+  }
 
-//   try {
-//     // Fetch the blog by ID, including the author details (name, avatar)
-//     const blog = await prisma.blog.findUnique({
-//       where: { id },
-//       include: {
-//         author: {
-//           select: {
-//             name: true,
-//             avatar: true,
-//           },
-//         },
-//       },
-//     });
+  try {
+    // Fetch the blog by ID, including the author details (name, avatar)
+    const blog = await prisma.blog.findUnique({
+      where: { id: params.id },
+      include: {
+        author: {
+          select: {
+            name: true,
+            avatar: true,
+            id: true,
+          },
+        },
+      },
+    });
 
-//     if (!blog) {
-//       return res.status(404).json({ error: "Blog not found" });
-//     }
+    if (!blog) {
+      return NextResponse.json({ error: "Blog not found" });
+    }
 
-//     return res.status(200).json(blog); // Return the found blog
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({ error: "Failed to fetch blog" });
-//   }
-// }
+    return NextResponse.json(blog); // Return the found blog
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Failed to fetch blog" });
+  }
+}

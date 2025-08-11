@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromToken } from "@/server/auth/getUserFromToken";
 import { responseGenerator } from "@/server/helper/responseGenerator";
+import { Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   const token = req.headers.get("token");
@@ -51,9 +52,44 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+
+    const category = searchParams.get("category");
+    const author = searchParams.get("author");
+    const search = searchParams.get("search");
+    const pageSize = parseInt(searchParams.get("pageSize") || "10");
+    const pageNumber = parseInt(searchParams.get("pageNumber") || "1");
+
+    const filters: Prisma.BlogWhereInput = {};
+
+    if (category) {
+      filters.category = {
+        name: {
+          equals: category,
+          mode: "insensitive",
+        },
+      };
+    }
+
+    if (author) {
+      filters.authorId = author;
+    }
+
+    if (search) {
+      filters.title = {
+        contains: search,
+        mode: "insensitive",
+      };
+    }
+
+    const totalBlogs = await prisma.blog.count({
+      where: filters,
+    });
+
     const blogs = await prisma.blog.findMany({
+      where: filters,
       include: {
         author: {
           select: {
@@ -63,9 +99,28 @@ export async function GET() {
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
     });
 
-    return NextResponse.json(responseGenerator([...blogs], "Created!", 201));
+    return NextResponse.json(
+      responseGenerator(
+        {
+          blogs,
+          pagination: {
+            total: totalBlogs,
+            pageSize,
+            pageNumber,
+            totalPages: Math.ceil(totalBlogs / pageSize),
+          },
+        },
+        "Fetched blogs!",
+        200
+      )
+    );
   } catch (err) {
     console.error(err);
     return NextResponse.json(
