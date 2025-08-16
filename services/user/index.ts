@@ -40,7 +40,7 @@ export const updateProfile = async (data: z.infer<typeof profileSchema>) => {
   return response.json();
 };
 
-export const createBlog = async (data: z.infer<typeof blogSchema>) => {
+export const createBlog = async (data) => {
   const token = getToken();
   if (!token) throw new Error("No token found");
 
@@ -48,7 +48,7 @@ export const createBlog = async (data: z.infer<typeof blogSchema>) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      token: `${token}`,
     },
     body: JSON.stringify(data),
   });

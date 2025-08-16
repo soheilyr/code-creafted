@@ -32,7 +32,7 @@ const getBlogsSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const token = getToken();
+  const token = req.headers.get("token");
   if (!token) {
     return NextResponse.json(responseGenerator({}, "Unauthorized", 401, true));
   }
