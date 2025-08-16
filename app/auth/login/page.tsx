@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 interface LoginFormInputs {
   email: string;
@@ -13,7 +14,7 @@ interface LoginFormInputs {
 }
 
 const LoginPage = () => {
-  // const router = useRouter();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -39,8 +40,8 @@ const LoginPage = () => {
 
       if (res.ok) {
         // Redirect on success
-        // router.push("/dashboard");\
-        Cookies.set("token", result.token);
+        Cookies.set("token", result.data.token);
+        router.push("/dashboard");
       } else {
         setErrorMessage(result.error || "Login failed");
       }

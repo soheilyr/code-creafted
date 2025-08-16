@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key"; // Replace with env in production
+const JWT_SECRET = process.env.JWT_SECRET as string; // Replace with env in production
 
 interface TokenPayload {
   id: string;
@@ -13,31 +13,39 @@ interface TokenPayload {
 
 // Call this from API route or server component
 export async function getUserFromToken(token: string): Promise<null | {
+  name: string | null;
   id: string;
   email: string;
-  isBlocked: boolean;
   isAdmin: boolean;
+  isBlocked: boolean;
+  avatar: string | null;
+  following: {
+    id: string;
+    followerId: string;
+    followingId: string;
+  }[];
+  followers: {
+    id: string;
+    followerId: string;
+    followingId: string;
+  }[];
 }> {
-  try {
-    console.log(JWT_SECRET);
-    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        isBlocked: true,
-        isAdmin: true,
-        followers: true,
-        following: true,
-      },
-    });
+  console.log(JWT_SECRET);
+  const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
-    return user;
-  } catch (error) {
-    console.error("getUserFromToken error:", error);
-    return null;
-  }
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      avatar: true,
+      isBlocked: true,
+      isAdmin: true,
+      followers: true,
+      following: true,
+    },
+  });
+
+  return user;
 }

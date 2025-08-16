@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET ?? ""; // Replace in prod
-
-export function signJWT(payload: object, expiresIn: string = "7d") {
-  console.log("JWT_SECRET", JWT_SECRET);
+const JWT_SECRET = process.env.JWT_SECRET ?? ""; // Replace with env in production
+// 604800000 => 7d
+console.log(JWT_SECRET);
+export function signJWT(payload: object, expiresIn: number = 604800) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 

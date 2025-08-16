@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-
     const category = searchParams.get("category");
     const author = searchParams.get("author");
     const search = searchParams.get("search");
@@ -84,10 +83,6 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    const totalBlogs = await prisma.blog.count({
-      where: filters,
-    });
-
     const blogs = await prisma.blog.findMany({
       where: filters,
       include: {
@@ -105,16 +100,35 @@ export async function GET(req: NextRequest) {
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,
     });
-
+    if (!!blogs.length) {
+      const totalBlogs = await prisma.blog.count({
+        where: filters,
+      });
+      return NextResponse.json(
+        responseGenerator(
+          {
+            blogs,
+            pagination: {
+              total: totalBlogs,
+              pageSize,
+              pageNumber,
+              totalPages: Math.ceil(totalBlogs / pageSize),
+            },
+          },
+          "Fetched blogs!",
+          200
+        )
+      );
+    }
     return NextResponse.json(
       responseGenerator(
         {
-          blogs,
+          blogs: [],
           pagination: {
-            total: totalBlogs,
-            pageSize,
-            pageNumber,
-            totalPages: Math.ceil(totalBlogs / pageSize),
+            total: 0,
+            pageSize: 0,
+            pageNumber: 1,
+            totalPages: 0,
           },
         },
         "Fetched blogs!",
