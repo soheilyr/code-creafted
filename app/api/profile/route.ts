@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request) {
   const token = req.headers.get("token");
   if (!token) {
-    NextResponse.json({ status: 401, message: "Unauthorized" });
+    return NextResponse.json({ status: 401, message: "Unauthorized" });
   } else {
     try {
       console.log(token);
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
       return NextResponse.json(responseGenerator({ ...user }));
     } catch (error) {
       console.log(error);
-      NextResponse.json({ status: 401, message: "invalid token" });
+      return NextResponse.json({ status: 401, message: "invalid token" });
     }
   }
 }

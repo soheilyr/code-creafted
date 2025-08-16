@@ -1,145 +1,155 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromToken } from "@/server/auth/getUserFromToken";
+import { getToken } from "@/lib/utils";
 import { responseGenerator } from "@/server/helper/responseGenerator";
+import { z } from "zod";
 import { Prisma } from "@prisma/client";
+import { getUserFromToken } from "@/server/auth/getUserFromToken";
+
+const createBlogSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  content: z.string().optional(),
+  imageUrl: z.string().url("Invalid URL").optional(),
+  published: z.boolean().optional().default(false),
+  category: z.string().optional(),
+});
+
+const getBlogsSchema = z.object({
+  category: z.string().optional(),
+  author: z.string().optional(),
+  search: z.string().optional(),
+  pageSize: z
+    .string()
+    .refine((val) => +val > 0, "Page size must be positive")
+    .optional()
+    .default("10"),
+  pageNumber: z
+    .string()
+    .refine((val) => +val > 0, "Page number must be positive")
+    .optional()
+    .default("1"),
+});
 
 export async function POST(req: NextRequest) {
-  const token = req.headers.get("token");
-  console.log(token);
+  const token = getToken();
   if (!token) {
-    return NextResponse.json({ message: "unauthorized!", staus: 401 });
+    return NextResponse.json(responseGenerator({}, "Unauthorized", 401, true));
   }
-  try {
-    const user = await getUserFromToken(token); // assuming middleware or JWT
 
+  try {
+    const user = await getUserFromToken(token);
     if (!user || user.isBlocked) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        responseGenerator({}, "Unauthorized", 401, true)
+      );
     }
 
-    const {
-      title,
-      description,
-      category,
-      imageUrl = null,
-      content = null,
-    } = await req.json();
+    const body = await req.json();
+    const validatedData = createBlogSchema.parse(body);
 
-    await prisma.blog.create({
+    const blog = await prisma.blog.create({
       data: {
-        title,
-        description,
-        author: {
-          connect: { id: user.id },
-        },
-        imageUrl,
-        content,
-        category: {
-          connectOrCreate: {
-            where: { name: category },
-            create: { name: category },
+        title: validatedData.title,
+        description: validatedData.description,
+        content: validatedData.content,
+        imageUrl: validatedData.imageUrl,
+        published: validatedData.published,
+        author: { connect: { id: user.id } },
+        ...(validatedData.category && {
+          category: {
+            connectOrCreate: {
+              where: { name: validatedData.category },
+              create: { name: validatedData.category },
+            },
           },
-        },
+        }),
+      },
+      include: {
+        author: { select: { id: true, name: true, avatar: true } },
+        category: { select: { id: true, name: true } },
+        savedBy: { select: { id: true, name: true } },
       },
     });
 
-    return NextResponse.json(responseGenerator({}, "Created!", 201));
-  } catch (err) {
-    console.error(err);
     return NextResponse.json(
-      { error: "Failed to create blog" },
-      { status: 500 }
+      responseGenerator(blog, "Blog created successfully", 201)
+    );
+  } catch (error) {
+    console.error(error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(responseGenerator({}, error.message, 400, true));
+    }
+    return NextResponse.json(
+      responseGenerator({}, "Failed to create blog", 500, true)
     );
   }
 }
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
-    const author = searchParams.get("author");
-    const search = searchParams.get("search");
-    const pageSize = parseInt(searchParams.get("pageSize") || "10");
-    const pageNumber = parseInt(searchParams.get("pageNumber") || "1");
+    const validatedParams = getBlogsSchema.parse({
+      category: searchParams.get("category") ?? "",
+      author: searchParams.get("author") ?? "",
+      search: searchParams.get("search") ?? "",
+      pageSize: searchParams.get("pageSize") ?? "1",
+      pageNumber: searchParams.get("pageNumber") ?? "10",
+      published: searchParams.get("published") ?? "",
+    });
 
     const filters: Prisma.BlogWhereInput = {};
 
-    if (category) {
+    if (validatedParams.category) {
       filters.category = {
-        name: {
-          equals: category,
-          mode: "insensitive",
-        },
+        name: { equals: validatedParams.category, mode: "insensitive" },
       };
     }
 
-    if (author) {
-      filters.authorId = author;
+    if (validatedParams.author) {
+      filters.authorId = validatedParams.author;
     }
 
-    if (search) {
-      filters.title = {
-        contains: search,
-        mode: "insensitive",
-      };
+    if (validatedParams.search) {
+      filters.title = { contains: validatedParams.search, mode: "insensitive" };
     }
 
     const blogs = await prisma.blog.findMany({
       where: filters,
       include: {
-        author: {
-          select: {
-            name: true,
-            avatar: true,
-            id: true,
-          },
-        },
+        author: { select: { id: true, name: true, avatar: true } },
+        category: { select: { id: true, name: true } },
+        savedBy: { select: { id: true, name: true } },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip: (pageNumber - 1) * pageSize,
-      take: pageSize,
+      orderBy: { createdAt: "desc" },
+      skip: (+validatedParams.pageNumber - 1) * +validatedParams.pageSize,
+      take: +validatedParams.pageSize,
     });
-    if (!!blogs.length) {
-      const totalBlogs = await prisma.blog.count({
-        where: filters,
-      });
-      return NextResponse.json(
-        responseGenerator(
-          {
-            blogs,
-            pagination: {
-              total: totalBlogs,
-              pageSize,
-              pageNumber,
-              totalPages: Math.ceil(totalBlogs / pageSize),
-            },
-          },
-          "Fetched blogs!",
-          200
-        )
-      );
-    }
+
+    const totalBlogs = await prisma.blog.count({ where: filters });
+
     return NextResponse.json(
       responseGenerator(
         {
-          blogs: [],
+          blogs,
           pagination: {
-            total: 0,
-            pageSize: 0,
-            pageNumber: 1,
-            totalPages: 0,
+            total: totalBlogs,
+            pageSize: validatedParams.pageSize,
+            pageNumber: validatedParams.pageNumber,
+            totalPages: Math.ceil(totalBlogs / +validatedParams.pageSize),
           },
         },
-        "Fetched blogs!",
+        "Fetched blogs successfully",
         200
       )
     );
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(responseGenerator({}, error.message, 400, true));
+    }
     return NextResponse.json(
-      { error: "Something went wrong!" },
-      { status: 500 }
+      responseGenerator({}, "Failed to fetch blogs", 500, true)
     );
   }
 }

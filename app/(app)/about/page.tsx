@@ -42,7 +42,7 @@ export default function AboutPage() {
             community of bloggers and readers.
           </p>
           <Button asChild variant="default" size="lg">
-            <Link href="/signup">Join Our Community</Link>
+            <Link href="/auth/register">Join Our Community</Link>
           </Button>
         </div>
       </section>
