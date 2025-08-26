@@ -2,7 +2,9 @@ import BlogsSlider from "@/components/common/BlogSlider";
 import HeroSection from "@/components/pages/hmoe/HeroSection";
 
 export default async function Home() {
-  const res = await fetch("http://localhost:3000/api/blog");
+  const res = await fetch(
+    "http://localhost:3000/api/blog?pageNumber=1&pageSize=10"
+  );
   const blogs = await res.json();
   console.log(blogs);
   return (

@@ -39,8 +39,10 @@ export const useUserInfo = create<UserInfoStore>()(
             });
             if (!res.ok) throw new Error(`HTTP error ${res.status}`);
             const user = await res.json();
+            console.log(user);
             // const validatedData = SiteInfoSchema.parse(data); TODO:You should add schema for this
             set({ userInfo: user.data });
+            console.log("setted !");
           } catch (err) {
             console.log(err);
           }

@@ -15,7 +15,7 @@ export default function Dashboardlayout({
       <QueryClientProvider client={queryClient}>
         <SideBar />
         <MobileSidebar />
-        {children}
+        <section className="w-full p-5">{children}</section>
       </QueryClientProvider>
     </div>
   );

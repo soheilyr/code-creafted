@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getToken } from "@/lib/utils";
 import { responseGenerator } from "@/server/helper/responseGenerator";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
@@ -125,6 +124,7 @@ export async function GET(req: NextRequest) {
       skip: (+validatedParams.pageNumber - 1) * +validatedParams.pageSize,
       take: +validatedParams.pageSize,
     });
+    console.log("blogs", blogs);
 
     const totalBlogs = await prisma.blog.count({ where: filters });
 
@@ -134,8 +134,8 @@ export async function GET(req: NextRequest) {
           blogs,
           pagination: {
             total: totalBlogs,
-            pageSize: validatedParams.pageSize,
-            pageNumber: validatedParams.pageNumber,
+            pageSize: +validatedParams.pageSize,
+            pageNumber: +validatedParams.pageNumber,
             totalPages: Math.ceil(totalBlogs / +validatedParams.pageSize),
           },
         },

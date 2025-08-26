@@ -30,7 +30,6 @@ export async function getUserFromToken(token: string): Promise<null | {
     followingId: string;
   }[];
 }> {
-  console.log(JWT_SECRET);
   const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
   const user = await prisma.user.findUnique({

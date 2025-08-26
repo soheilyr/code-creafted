@@ -72,69 +72,43 @@ export const getFollowing = async (userId: string): Promise<FollowUser[]> => {
   });
 };
 
-export const followUser = async (
-  followerId: string,
-  followingId: string
-): Promise<void> => {
+export async function followUser(followerId: string, followingId: string) {
   if (followerId === followingId) {
-    throw new Error("Cannot follow yourself");
+    throw new Error("❌ نمی‌تونی خودتو فالو کنی!");
   }
 
-  const user = await prisma.user.findUnique({ where: { id: followingId } });
-  if (!user) {
-    throw new Error("User to follow not found");
+  try {
+    const follow = await prisma.follow.create({
+      data: {
+        followerId,
+        followingId,
+      },
+    });
+    return follow;
+  } catch (error) {
+    // duplicate constraint
+    if (error.code === "P2002") {
+      throw new Error("⚠️ قبلا این کاربر رو فالو کردی.");
+    }
+    throw error;
   }
-  if (user.isBlocked) {
-    throw new Error("Cannot follow a blocked user");
+}
+export async function unfollowUser(followerId: string, followingId: string) {
+  console.log("followUser", followerId, "following id", followingId);
+  try {
+    await prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId,
+        },
+      },
+    });
+    return { success: true };
+  } catch (error: any) {
+    if (error.code === "P2025") {
+      throw new Error("⚠️ رابطه‌ای برای آنفالو پیدا نشد.");
+    }
+    throw error;
   }
-
-  // Check if already following
-  const existingFollow = await prisma.user.findFirst({
-    where: {
-      id: followerId,
-      following: { some: { id: followingId } },
-    },
-  });
-  if (existingFollow) {
-    throw new Error("Already following this user");
-  }
-
-  await prisma.user.update({
-    where: { id: followerId },
-    data: {
-      following: { connect: { id: followingId } },
-    },
-  });
-};
-
-export const unfollowUser = async (
-  followerId: string,
-  followingId: string
-): Promise<void> => {
-  if (followerId === followingId) {
-    throw new Error("Cannot unfollow yourself");
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: followingId } });
-  if (!user) {
-    throw new Error("User to unfollow not found");
-  }
-
-  // Check if following exists
-  const existingFollow = await prisma.user.findFirst({
-    where: {
-      id: followerId,
-      following: { some: { id: followingId } },
-    },
-  });
-  if (!existingFollow) {
-    throw new Error("Not following this user");
-  }
-
-  await prisma.user.update({
-    where: { id: followerId },
-    data: {
-      following: { disconnect: { id: followingId } },
-    },
-  });
-};
+}

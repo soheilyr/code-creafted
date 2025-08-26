@@ -3,11 +3,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import AvatarDefault from "@/public/icon/avatar.webp";
 import { Bookmark, Pen } from "lucide-react";
+import FollowBtn from "./_components/FollowBtn";
 
 const BlogDetailPage = async ({ params }) => {
   const { id } = await params;
   const res = await fetch(`http://localhost:3000/api/blog/${id}`);
-  const blogDetail = await res.json();
+  const { data: blogDetail } = await res.json();
+
   return (
     <div className="container mx-auto p-[32px] bg-white shadow-sm roudned-md my-20">
       <Image
@@ -43,12 +45,10 @@ const BlogDetailPage = async ({ params }) => {
           </div>
 
           {/* Follow Button */}
-          <button className="px-4 py-1 mt-1 rounded-sm bg-[#f1f6f9] text-[#000] cursor-pointer hover:bg-[#c3d9e6]  text-xs font-medium shadow-md transition duration-200">
-            Follow
-          </button>
+          <FollowBtn id={blogDetail.author.id} />
         </div>
         <div className="flex items-center">
-          <button>  
+          <button>
             <Bookmark className="text-gray-500 hover:translate-y-[-2px] hover:fill-gray-500 hover:scale-105 cursor-pointer transition-all" />
           </button>
         </div>

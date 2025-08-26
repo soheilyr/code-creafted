@@ -13,7 +13,7 @@ export async function POST(
   }
 
   try {
-    const { id } = params;
+    const { id } = await params;
     if (!id) {
       return NextResponse.json(
         responseGenerator({}, "Invalid or missing user ID", 400, true)

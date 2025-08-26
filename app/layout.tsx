@@ -5,9 +5,7 @@ import "react-toastify/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { ensureAdminUser } from "@/lib/initAdmin";
 import { UserInfoProvider } from "../provider/userInfoProvider";
-import { QueryClient } from "@tanstack/react-query";
-
-const queryClient = new QueryClient();
+import { Providers } from "@/provider/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,11 +33,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#f1f6f9]`}
       >
-        <UserInfoProvider>
-          <ToastContainer />
-
-          {children}
-        </UserInfoProvider>
+        <Providers>
+          <UserInfoProvider>
+            <ToastContainer />
+            {children}
+          </UserInfoProvider>
+        </Providers>
       </body>
     </html>
   );

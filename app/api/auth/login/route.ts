@@ -30,6 +30,12 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
+    if (user.isBlocked) {
+      return NextResponse.json(
+        { error: "Your account have been banned" },
+        { status: 403 }
+      );
+    }
 
     const token = signJWT({
       id: user.id,

@@ -93,3 +93,58 @@ export const getFollowing = async () => {
 
   return response.json();
 };
+export const getUserBlogs = async (id: string) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found");
+
+  const response = await fetch(`${API_URL}/api/user/blog?id=${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch following");
+  }
+
+  return response.json();
+};
+
+export const followUser = async (id: string) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found");
+
+  const response = await fetch(`${API_URL}/api/user/follow/${id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      token: `${token}`,
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to create blog");
+  }
+
+  return response.json();
+};
+export const unfollowUser = async (id: string) => {
+  const token = getToken();
+  if (!token) throw new Error("No token found");
+
+  const response = await fetch(`${API_URL}/api/user/unfollow/${id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      token: `${token}`,
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to create blog");
+  }
+
+  return response.json();
+};
