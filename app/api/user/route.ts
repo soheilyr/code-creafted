@@ -13,7 +13,11 @@ export async function GET(req: Request) {
       if (!user?.isAdmin) {
         NextResponse.json({ status: 403, message: "Forbidden" });
       }
-      const totalUsers = await prisma.user.findMany();
+      const totalUsers = await prisma.user.findMany({
+        where: {
+          isAdmin: false,
+        },
+      });
 
       return NextResponse.json(
         responseGenerator({
