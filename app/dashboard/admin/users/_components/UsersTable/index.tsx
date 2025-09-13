@@ -1,76 +1,80 @@
 "use client";
 
-import * as React from "react";
-
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { toast } from "sonner";
 
-type User = {
+interface User {
   id: string;
+  name?: string;
   email: string;
-  name: string;
-  password: string;
-  isAdmin: boolean;
   isBlocked: boolean;
-  avatar: string | null;
-};
-
-interface UsersTableProps {
-  data: User[];
 }
 
-export function UsersTable({ data }: UsersTableProps) {
-  console.log("data", data);
-  const [filter, setFilter] = React.useState("");
+interface Props {
+  users: User[];
+}
+
+export default function UsersTable({ users: initialUsers }: Props) {
+  const [users, setUsers] = useState<User[]>(initialUsers);
+
+  const toggleBlock = async (id: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/users/${id}/block`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ block: !currentStatus }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update");
+
+      const data = await res.json();
+
+      setUsers(
+        users.map((u) =>
+          u.id === id ? { ...u, isBlocked: !currentStatus } : u
+        )
+      );
+      toast.success(data.message ?? "User status updated");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    }
+  };
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between py-2">
-        <Input
-          placeholder="Search by name or email..."
-          value={filter ?? ""}
-          onChange={(e) => setFilter(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.email}</TableCell>
-                <TableCell>{item.isBlocked ? "Blocked" : "Active"}</TableCell>
-                <TableCell>{item.isAdmin ? "Admin" : "User"}</TableCell>
-                <TableCell>
-                  <Button variant="secondary" size="sm">
-                    Block user
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+    <table className="min-w-full border">
+      <thead>
+        <tr className="bg-gray-100">
+          <th className="px-4 py-2">Name</th>
+          <th className="px-4 py-2">Email</th>
+          <th className="px-4 py-2">Status</th>
+          <th className="px-4 py-2">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.map((user) => (
+          <tr key={user.id} className="border-t">
+            <td className="px-4 py-2">{user.name ?? "-"}</td>
+            <td className="px-4 py-2">{user.email}</td>
+            <td className="px-4 py-2">
+              {user.isBlocked ? (
+                <span className="text-red-500 font-medium">Blocked</span>
+              ) : (
+                <span className="text-green-600 font-medium">Active</span>
+              )}
+            </td>
+            <td className="px-4 py-2">
+              <Button
+                variant={user.isBlocked ? "secondary" : "destructive"}
+                onClick={() => toggleBlock(user.id, user.isBlocked)}
+              >
+                {user.isBlocked ? "Unblock" : "Block"}
+              </Button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
