@@ -45,8 +45,8 @@ export default function BlogsPage() {
       `/api/admin/blogs?search=${search}&page=${page}&pageSize=${pageSize}`
     );
     const data = await res.json();
-    setBlogs(data.blogs);
-    setTotal(data.total);
+    setBlogs(data.data.blogs);
+    setTotal(data.data.total);
   };
 
   useEffect(() => {
@@ -196,8 +196,7 @@ export default function BlogsPage() {
               Category: {selectedBlog?.category?.name ?? "—"}
             </p>
             <p className="text-sm text-gray-500">
-              Status:{" "}
-              {selectedBlog?.published ? "Published" : "Draft"}
+              Status: {selectedBlog?.published ? "Published" : "Draft"}
             </p>
             <div className="prose max-w-none">
               <h4>Description</h4>

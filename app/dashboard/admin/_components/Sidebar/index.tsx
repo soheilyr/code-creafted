@@ -15,7 +15,7 @@ export default function SideBar() {
         <Separator className="my-4 bg-sidebar-border" />
         <nav className="space-y-2">
           <Link
-            href="/dashboard"
+            href="/dashboard/admin"
             className="flex items-center gap-2 p-2 rounded-md hover:bg-sidebar-accent text-sidebar-foreground"
           >
             <LayoutDashboard className="h-5 w-5" />
