@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -30,10 +31,8 @@ export default function UsersTable({ users: initialUsers }: Props) {
 
       const data = await res.json();
 
-      setUsers(
-        users.map((u) =>
-          u.id === id ? { ...u, isBlocked: !currentStatus } : u
-        )
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, isBlocked: !currentStatus } : u))
       );
       toast.success(data.message ?? "User status updated");
     } catch (err) {
@@ -43,38 +42,45 @@ export default function UsersTable({ users: initialUsers }: Props) {
   };
 
   return (
-    <table className="min-w-full border">
-      <thead>
-        <tr className="bg-gray-100">
-          <th className="px-4 py-2">Name</th>
-          <th className="px-4 py-2">Email</th>
-          <th className="px-4 py-2">Status</th>
-          <th className="px-4 py-2">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {users.map((user) => (
-          <tr key={user.id} className="border-t">
-            <td className="px-4 py-2">{user.name ?? "-"}</td>
-            <td className="px-4 py-2">{user.email}</td>
-            <td className="px-4 py-2">
-              {user.isBlocked ? (
-                <span className="text-red-500 font-medium">Blocked</span>
-              ) : (
-                <span className="text-green-600 font-medium">Active</span>
-              )}
-            </td>
-            <td className="px-4 py-2">
-              <Button
-                variant={user.isBlocked ? "secondary" : "destructive"}
-                onClick={() => toggleBlock(user.id, user.isBlocked)}
-              >
-                {user.isBlocked ? "Unblock" : "Block"}
-              </Button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="rounded-md border bg-white shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[200px]">Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead className="w-[120px]">Status</TableHead>
+            <TableHead className="text-right w-[150px]">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.map((user) => (
+            <TableRow key={user.id}>
+              <TableCell className="font-medium">{user.name ?? "-"}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>
+                {user.isBlocked ? (
+                  <span className="rounded bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
+                    Blocked
+                  </span>
+                ) : (
+                  <span className="rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-600">
+                    Active
+                  </span>
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  variant={user.isBlocked ? "secondary" : "destructive"}
+                  size="sm"
+                  onClick={() => toggleBlock(user.id, user.isBlocked)}
+                >
+                  {user.isBlocked ? "Unblock" : "Block"}
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { UsersTable } from "./_components/UsersTable";
+import UsersTable from "./_components/UsersTable";
 
 export default async function Users() {
   const token = (await cookies()).get("token")?.value;
@@ -15,7 +15,7 @@ export default async function Users() {
   console.log("result :", result.data.users);
   return (
     <>
-      <UsersTable data={result.data.users} />
+      <UsersTable users={result.data.users} />
     </>
   );
 }

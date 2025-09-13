@@ -24,21 +24,21 @@ export default function SideBar() {
           {userInfo?.isAdmin && (
             <>
               <Link
-                href="/dashboard/users"
+                href="/dashboard/admin/users"
                 className="flex items-center gap-2 p-2 rounded-md hover:bg-sidebar-accent text-sidebar-foreground"
               >
                 <Users className="h-5 w-5" />
                 Manage Users
               </Link>
               <Link
-                href="/dashboard/blogs"
+                href="/dashboard/admin/blogs"
                 className="flex items-center gap-2 p-2 rounded-md hover:bg-sidebar-accent text-sidebar-foreground"
               >
                 <FileText className="h-5 w-5" />
                 Manage Blogs
               </Link>
               <Link
-                href="/dashboard/categories"
+                href="/dashboard/admin/categories"
                 className="flex items-center gap-2 p-2 rounded-md hover:bg-sidebar-accent text-sidebar-foreground"
               >
                 <Tag className="h-5 w-5" />
